@@ -61,8 +61,13 @@ public:
     // TASK 2 [COMPLETE]: Implement a member function to update GPA with validation.
     // Requirement: If newGpa is between 0.0 and 4.0 (inclusive), update gpa and return true.
     // Otherwise, print an error message and return false.
-    bool setGPA(float newGpa) {
+    bool setGPA(float newGpa) { 
         // TODO (TASK 2): Write the validation and assignment code here.
+        if (newGpa >= 0.0f && newGpa <= 4.0f) {
+            gpa = newGpa;
+            return true;
+        }
+        cout << "Error: Invalid GPA. Must be between 0.0 and 4.0." << endl;
         return false; // Replace this placeholder
     }
 };
@@ -75,7 +80,7 @@ public:
 void displayUsingPointer(const Student* ptr) {
     if (ptr != nullptr) {
         // --- BUG HERE (TASK 1) ---
-        // ptr.printStudent(); // UNCOMMENT AND FIX THIS LINE 
+         ptr->printStudent(); // UNCOMMENT AND FIX THIS LINE 
     }
 }
 
@@ -89,7 +94,7 @@ void displayUsingPointer(const Student* ptr) {
 void printAllStudents(const Student list[], int size) {
     cout << "\n--- Student Roster ---" << endl;
     // --- BUG HERE (TASK 3) ---
-    for (int i = 0; i <= size; i++) { 
+    for (int i = 0; i < size; i++) { 
         list[i].printStudent();
     }
 }
@@ -101,8 +106,10 @@ float calculateAverageGPA(const Student list[], int size) {
     float totalGpa = 0.0f;
 
     // TODO (TASK 4): Write loop here to sum GPAs and calculate average.
-
-    return 0.0f; // Replace with calculated average
+for (int i = 0; i < size; i++) {
+        totalGpa += list[i].getGPA();
+    }
+   return totalGpa / size; // Replace with calculated average
 }
 
 
@@ -114,16 +121,14 @@ float calculateAverageGPA(const Student list[], int size) {
 // BUG DESCRIPTION: Missing binary flag and wrong stream output operator used instead of write().
 void saveToBinaryFile(const char* filename, const Student list[], int size) {
     // --- BUG HERE (TASK 5) ---
-    fstream outFile(filename, ios::out); 
+  fstream outFile(filename, ios::out | ios::binary);
     if (!outFile) {
         cout << "Error opening file for writing!" << endl;
         return;
     }
 
     for (int i = 0; i < size; i++) {
-        
-         outFile << list[i]; 
-        
+        outFile.write(reinterpret_cast<const char*>(&list[i]), sizeof(Student));
     }
     outFile.close();
     cout << "Successfully saved records to binary file: " << filename << endl;
@@ -139,6 +144,15 @@ bool readRecordAt(const char* filename, int recordIndex, Student& outStudent) {
         cout << "Error opening binary file for reading!" << endl;
         return false;
     }
+
+    streamoff offset = recordIndex * sizeof(Student);
+    inFile.seekg(offset, ios::beg);
+    
+    if (inFile.read(reinterpret_cast<char*>(&outStudent), sizeof(Student))) {
+        inFile.close();
+        return true;
+    }
+
 
     // TODO (TASK 6): Complete the seekg() positioning and read() execution.
     // Hint: 
@@ -160,7 +174,10 @@ bool readRecordAt(const char* filename, int recordIndex, Student& outStudent) {
 // BUG DESCRIPTION: Infinite recursion due to missing base case and non-decreasing recursive step.
 int recursiveFactorial(int n) {
     // --- BUG HERE (TASK 7) ---
-    return n * recursiveFactorial(n); 
+    if (n <= 1) return 1;
+    return n * recursiveFactorial(n - 1); 
+
+    
 }
 
 // TASK 8 [COMPLETE]: Recursive Linear Search for Student ID.
@@ -170,8 +187,13 @@ int recursiveFactorial(int n) {
 // General Case: Recursively search next index (index + 1).
 int recursiveSearchID(const Student list[], int size, int targetID, int currentIndex = 0) {
     // TODO (TASK 8): Write base cases and recursive step here.
-
-    return -1; // Placeholder
+if (currentIndex >= size) {
+        return -1; 
+    }
+    if (list[currentIndex].getID() == targetID) {
+        return currentIndex; 
+    }
+    return recursiveSearchID(list, size, targetID, currentIndex + 1); // Placeholder
 }
 
 
@@ -187,9 +209,8 @@ void analyzeAlgorithmComplexity(int n) {
 
     // --- BUG HERE (TASK 9) ---
     for (int i = 1; i <= n; i++) {
-        for (int j = 1; j <= n;) {
+        for (int j = 1; j <= n; j++) {
             totalSteps++;
-            j++; 
         }
     }
     cout << "Total Basic Operations Executed: " << totalSteps << " steps." << endl;
@@ -204,10 +225,12 @@ void analyzeLogarithmicEfficiency(int n) {
 
     // TODO (TASK 10): Implement while loop or for loop where i halves each step (i /= 2) until i <= 0.
     // Inside loop: stepCount++;
-
+for (int i = n; i > 0; i /= 2) {
+        stepCount++;
+    }
     cout << "Logarithmic Step Count for N=" << n << ": " << stepCount << " steps." << endl;
     // TODO (TASK 10 Comment): State the Big O complexity class of this algorithm below:
-    // Complexity: O(_________)
+    //Complexity: O(log N)
 }
 
 
@@ -234,7 +257,7 @@ int main() {
     displayUsingPointer(&s1); // Task 1
 
     // Test Task 3 & 4
-    // printAllStudents(roster, ROSTER_SIZE); // Task 3
+     printAllStudents(roster, ROSTER_SIZE); // Task 3
     float avgGpa = calculateAverageGPA(roster, ROSTER_SIZE); // Task 4
     cout << "Calculated Average GPA: " << avgGpa << endl;
 
@@ -249,7 +272,8 @@ int main() {
     }
 
     // Test Task 7 & 8
-    // int fact = recursiveFactorial(4); // Task 7
+     int fact = recursiveFactorial(4); 
+     cout << "Recursive Factorial of 4: " << fact << endl; // Task 7
     int foundIndex = recursiveSearchID(roster, ROSTER_SIZE, 102); // Task 8
     cout << "Recursive Search for ID 102 Found at Index: " << foundIndex << endl;
 
